@@ -21,14 +21,12 @@ export default function ShowReceta() {
   const { id } = useParams<{ id: string }>();
   const numericId = Number(id);
 
-  // --- TODOS LOS HOOKS VAN ARRIBA ---
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [data, setData] = useState<Recipe[] | null>(null);
   const [savedName, setSavedName] = useState<string>("Receta");
   const [isEditing, setIsEditing] = useState(false);
   const [targetServingsById, setTargetServingsById] = useState<Record<number, number>>({});
 
-  // ❗ Estado del modal
   const [confirm, setConfirm] = useState<{
     open: boolean;
     recipeId: number | null;
@@ -36,7 +34,6 @@ export default function ShowReceta() {
     name?: string;
   }>({ open: false, recipeId: null, index: null, name: "" });
 
-  // Cargar receta
   useEffect(() => {
     const r = getRecipeById(numericId) || null;
     setRecipe(r);
@@ -207,7 +204,7 @@ export default function ShowReceta() {
 
       <div className="w-full flex flex-col items-end justify-between mt-4">
         <h2 className="text-xl font-semibold">Editar</h2>
-        <Switch isSelected={isEditing} onValueChange={setIsEditing} aria-label="Modo edición">
+        <Switch isSelected={isEditing} onValueChange={setIsEditing} aria-label="Modo edición" >
           {isEditing ? "ON" : "OFF"}
         </Switch>
       </div>
@@ -276,7 +273,7 @@ export default function ShowReceta() {
                     </div>
                   )}
                 </div>
-              </div>w
+              </div>
 
               <div className="grid grid-cols-12 gap-8">
                 <div className="col-span-6 pr-1 border-r border-default-300/20 dark:border-default-600/40">
@@ -357,11 +354,6 @@ export default function ShowReceta() {
                     <div className="col-span-6 font-semibold opacity-80">INGREDIENTE</div>
                     <div className="col-span-3 font-semibold opacity-80">PESO</div>
                     <div className="col-span-3 font-semibold opacity-80">UNIDAD</div>
-                  </div>
-                  <div className="grid grid-cols-12 gap-3 mb-2 text-sm">
-                    <div className="col-span-6 opacity-70">PORCIONES</div>
-                    <div className="col-span-3">{getTarget(receta)}</div>
-                    <div className="col-span-3" />
                   </div>
                   {scaled.ingredients.map((ing, i) => (
                     <div key={i} className="grid grid-cols-12 gap-3 mb-3 items-center">

@@ -199,3 +199,5 @@ export function upsertRecipe(recipe: Recipe) {
 export function clearOverlay() {
   write({ deletedIds: [], addedIngredients: {}, addedRecipes: [] });
 }
+
+export { Recipe };
