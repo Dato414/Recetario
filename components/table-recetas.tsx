@@ -2,6 +2,7 @@
 import React from "react";
 import {
   Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip,
+  Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure
 } from "@heroui/react";
 import Link from "next/link";
 import { listRecipeRows, removeRecipe } from "@/lib/recipesStore";
@@ -13,24 +14,21 @@ const columns = [
 ];
 
 function normalize(s: string) {
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
 export default function TableRecetas({ query = "" }: { query?: string }) {
-  // Evitamos mismatch: cargar desde LS solo en cliente
   const [items, setItems] = React.useState<Row[]>([]);
   const refresh = React.useCallback(() => setItems(listRecipeRows()), []);
+  React.useEffect(() => { refresh(); }, [refresh]);
 
-  React.useEffect(() => {
-    refresh();
-  }, [refresh]);
+  // ▶️ Estado del modal y de la fila a eliminar
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [toDelete, setToDelete] = React.useState<{ id: number; name: string } | null>(null);
 
-  const handleDelete = (id: number) => {
-    removeRecipe(id);
+  const handleConfirmDelete = () => {
+    if (!toDelete) return;
+    removeRecipe(toDelete.id);
     refresh();
   };
 
@@ -65,10 +63,15 @@ export default function TableRecetas({ query = "" }: { query?: string }) {
                   </Link>
                 </span>
               </Tooltip>
+
               <Tooltip color="danger" content="Eliminar">
                 <button
+                  type="button"
                   className="text-lg text-danger cursor-pointer active:opacity-50"
-                  onClick={() => handleDelete(row.id)}
+                  onClick={() => {
+                    setToDelete({ id: row.id, name: row.name });
+                    onOpen();
+                  }}
                   aria-label={`Eliminar ${row.name}`}
                 >
                   <DeleteIcon />
@@ -80,40 +83,70 @@ export default function TableRecetas({ query = "" }: { query?: string }) {
           return row[columnKey];
       }
     },
-    []
+    [onOpen]
   );
 
   return (
-    <Table aria-label="Tabla de recetas">
-      <TableHeader columns={columns}>
-        {(column) => (
-          <TableColumn
-            key={column.uid}
-            align={column.uid === "actions" ? "center" : "start"}
-            className={column.uid === "name" ? "min-w-sm" : ""}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
+    <>
+      <Table aria-label="Tabla de recetas">
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn
+              key={column.uid}
+              align={column.uid === "actions" ? "center" : "start"}
+              className={column.uid === "name" ? "min-w-sm" : ""}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
 
-      <TableBody
-        items={filtered}
-        emptyContent={
-          items.length === 0
-            ? "No hay recetas aún"
-            : "No hay resultados para tu búsqueda"
-        }
-      >
-        {(item) => (
-          <TableRow key={item.id}>
-            {(columnKey) => (
-              <TableCell>{renderCell(item, columnKey as any)}</TableCell>
-            )}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+        <TableBody
+          items={filtered}
+          emptyContent={
+            items.length === 0 ? "No hay recetas aún" : "No hay resultados para tu búsqueda"
+          }
+        >
+          {(item) => (
+            <TableRow key={item.id}>
+              {(columnKey) => <TableCell>{renderCell(item, columnKey as any)}</TableCell>}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {/* ▶️ Modal de confirmación */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop="blur">
+        <ModalContent>
+          {(close) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Eliminar receta</ModalHeader>
+              <ModalBody>
+                <p>
+                  ¿Seguro que querés eliminar{" "}
+                  <span className="font-semibold">
+                    {toDelete?.name?.trim() || "esta receta"}
+                  </span>
+                  ?
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={close}>Cancelar</Button>
+                <Button
+                  color="danger"
+                  onPress={() => {
+                    handleConfirmDelete();
+                    close();
+                  }}
+                >
+                  Eliminar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }
 

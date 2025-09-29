@@ -1,5 +1,5 @@
 "use client";
-
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import NavbarGeneral from "@/components/navbar";
 import {
@@ -20,7 +20,9 @@ type Ingredient = { name: string; amount: number; unit: "gr" | "ml" | "u" }; // 
 export default function ShowReceta() {
   const { id } = useParams<{ id: string }>();
   const numericId = Number(id);
-
+  const pathname = usePathname();
+  const hideOn = /^\/receta\/\d+$/;           // ajustá si querés otra ruta
+  const showSave = !hideOn.test(pathname);  
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [data, setData] = useState<Recipe[] | null>(null);
   const [savedName, setSavedName] = useState<string>("Receta");
@@ -119,12 +121,12 @@ export default function ShowReceta() {
       );
     };
 
-  // 🔧 FIX: antes usabas recipeId (no existe). Debe ser numericId
+
   useEffect(() => {
     setRecipe(getRecipeById(numericId) || null);
   }, [numericId]);
 
-  // Guardar ingredientes NUEVOS desde el form hijo (agrega y refresca)
+
   const handleAppendIngredients = (
     newIngredients: { name: string; amount: number; unit: "gr" | "ml" | "u" }[]
   ) => {
@@ -134,7 +136,7 @@ export default function ShowReceta() {
     setData(updated ? [updated] : null);
   };
 
-  // Guardar EDICIONES COMPLETAS de la receta (nombre, porciones, edits/borrados)
+
   const handleSaveAll = () => {
     const current = data?.[0];
     if (!current) return;
@@ -153,7 +155,7 @@ export default function ShowReceta() {
     setSavedName(updated?.name ?? "Receta");
   };
 
-  // helpers del modal
+
   const askRemoveIngredient = (recipeId: number, index: number, name: string) =>
     setConfirm({ open: true, recipeId, index, name });
 
@@ -178,7 +180,7 @@ export default function ShowReceta() {
     closeConfirm();
   };
 
-  // --- EARLY RETURNS DESPUÉS DE DECLARAR TODOS LOS HOOKS ---
+
   if (recipe === null && data === null) {
     return (
       <div className="mx-auto w-3/5 p-6">
@@ -196,15 +198,33 @@ export default function ShowReceta() {
     );
   }
 
+  
+  const handleToggleEditing = (val: boolean) => {
+    setIsEditing(val);
+    if (!val) {
+      handleSaveAll();
+    }
+  };
+
+  // const pathname = usePathname();
+  // const hideOn = /^\/receta\/\d+$/;
   return (
     <div className="mx-auto max-w-3xl flex flex-col justify-center items-center">
       <div className="w-3/4">
-        <NavbarGeneral recipeName={savedName} onSave={handleSaveAll} />
+        <NavbarGeneral
+          showSave={false}            
+          onSave={handleSaveAll}          
+          recipeName={savedName}
+        />
       </div>
 
       <div className="w-full flex flex-col items-end justify-between mt-4">
         <h2 className="text-xl font-semibold">Editar</h2>
-        <Switch isSelected={isEditing} onValueChange={setIsEditing} aria-label="Modo edición" >
+        <Switch
+          isSelected={isEditing}
+          onValueChange={handleToggleEditing}
+          aria-label="Modo edición"
+        >
           {isEditing ? "ON" : "OFF"}
         </Switch>
       </div>

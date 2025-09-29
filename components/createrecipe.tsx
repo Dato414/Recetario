@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import NewIngredent from "@/components/addIngredent";
+
 import { Button } from "@heroui/react";
 
 type Row = { id: string; name: string; amount: number | ""; unit: "gr" | "ml" | "u" };
@@ -58,6 +59,7 @@ export default function CreateRecipeForm({ onSave }: { onSave: (newIngredients: 
     setShortLabel(true);
   };
 
+ 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-center">

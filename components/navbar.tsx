@@ -1,18 +1,23 @@
 "use client";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button } from "@heroui/react";
 import Link from "next/link";
+import { useParams } from 'next/navigation'
 
 type Props = {
   title?: string;
   recipeName?: string;
-  onSave?: () => void; // único callback
+  onSave?: () => void; 
+  showSave? : boolean;
 };
 
 export default function NavbarGeneral({
+  
   title = "Recetas",
   recipeName,
-  onSave = () => {},
+  onSave = () => {},  
+  showSave = true            
 }: Props) {
+  const params = useParams()
   return (
     <Navbar
       className="mx-auto"
@@ -45,7 +50,11 @@ export default function NavbarGeneral({
 
       <NavbarContent justify="end">
         <NavbarItem>
-          <Button color="secondary" onPress={onSave}>Guardar</Button>
+          {showSave && (
+
+            <Button color="secondary" onPress={onSave}>Guardar</Button>
+            )
+          }
         </NavbarItem>
       </NavbarContent>
     </Navbar>
