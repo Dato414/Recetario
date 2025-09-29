@@ -39,7 +39,7 @@ export default function Home() {
             variant: "bordered",
             radius: "lg",
             size: "md",
-            fullWidth: "true",
+            fullWidth: true
           })}
           href="/create"
         >
